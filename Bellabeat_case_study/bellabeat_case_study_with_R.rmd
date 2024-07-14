@@ -1,0 +1,328 @@
+
+This is a case study from Google Data Analytics Certificate program on Coursera.
+
+## Scenario
+
+You are a junior data analyst working on the marketing analyst team at Bellabeat, a high-tech manufacturer of health-focused products for women. Bellabeat is a successful small company, but they have the potential to become a larger player in the global smart device market. Urška Sršen, cofounder and Chief Creative Officer of Bellabeat, believes that analyzing smart device fitness data could help unlock new growth opportunities for the company. You have been asked to focus on one of Bellabeat’s products and analyze smart device data to gain insight into how consumers are using their smart devices. The insights you discover will then help guide marketing strategy for the company. You will present your analysis to the Bellabeat executive team along with your high-level recommendations for Bellabeat’s marketing strategy.
+
+## Characters and products
+
+### Characters
+
+-   **Urška Sršen**: Bellabeat’s cofounder and Chief Creative Officer
+-   **Sando Mur**: Mathematician and Bellabeat’s cofounder; key member of the Bellabeat executive team
+-   **Bellabeat marketing analytics team**: A team of data analysts responsible for collecting, analyzing, and reporting data that helps guide Bellabeat’s marketing strategy. You joined this team six months ago and have been busy learning about Bellabeat’’s mission and business goals — as well as how you, as a junior data analyst, can help Bellabeat achieve them.
+
+### products
+
+-   **Bellabeat app**: The Bellabeat app provides users with health data related to their activity, sleep, stress, menstrual cycle, and mindfulness habits. This data can help users better understand their current habits and make healthy decisions. The Bellabeat app connects to their line of smart wellness products.
+-   **Leaf**: Bellabeat’s classic wellness tracker can be worn as a bracelet, necklace, or clip. The Leaf tracker connects to the Bellabeat app to track activity, sleep, and stress.
+-   **Time**: This wellness watch combines the timeless look of a classic timepiece with smart technology to track user activity, sleep, and stress. The Time watch connects to the Bellabeat app to provide you with insights into your daily wellness.
+-   **Spring**: This is a water bottle that tracks daily water intake using smart technology to ensure that you are appropriately hydrated throughout the day. The Spring bottle connects to the Bellabeat app to track your hydration levels.
+-   **Bellabeat membership**: Bellabeat also offers a subscription-based membership program for users. Membership gives users 24/7 access to fully personalized guidance on nutrition, activity, sleep, health and beauty, and mindfulness based on their lifestyle and goals.
+
+## About the company
+
+Urška Sršen and Sando Mur founded Bellabeat, a high-tech company that manufactures health-focused smart products. Sršen used her background as an artist to develop beautifully designed technology that informs and inspires women around the world. Collecting data on activity, sleep, stress, and reproductive health has allowed Bellabeat to empower women with knowledge about their own health and habits. Since it was founded in 2013, Bellabeat has grown rapidly and quickly positioned itself as a tech-driven wellness company for women.
+
+By 2016, Bellabeat had opened offices around the world and launched multiple products. Bellabeat products became available through a growing number of online retailers in addition to their own e-commerce channel on their website. The company has invested in traditional advertising media, such as radio, out-of-home billboards, print, and television, but focuses on digital marketing extensively. Bellabeat invests year-round in Google Search, maintaining active Facebook and Instagram pages, and consistently engages consumers on Twitter. Additionally, Bellabeat runs video ads on Youtube and display ads on the Google Display Network to support campaigns around key marketing dates.
+
+Sršen knows that an analysis of Bellabeat’s available consumer data would reveal more opportunities for growth. She has asked the marketing analytics team to focus on a Bellabeat product and analyze smart device usage data in order to gain insight into how people are already using their smart devices. Then, using this information, she would like high-level recommendations for how these trends can inform Bellabeat marketing strategy
+
+## 1 Ask
+
+### 1.1 Business task
+
+Analyze smart device data from non-Bellabeat products to provide a strong correlation or trend in customer data and present an appropriate market strategy, which focuses on a smart device product in Bellabeat, to Bellabeat executive team. In this case, I would like to research on **whether the intensity of activity will affect the time it takes to fall asleep.**
+
+I would like to define **"intensity of activity"** with **Activity indicator, which is calculate by VeryActiveMinutes x 5 + FairlyActiveMinutes x 3 + LightlyActiveMinutes x 1**.
+
+Also, I would reserve **total steps** and **calories** to look for any trends between data because there might be no trends between the time it takes to fall asleep and other data.
+
+### 1.2 Stakeholders
+
+**Urška Sršen** : Bellabeat's cofounder and Chief Creative Officer
+
+**Sando Mur** : Mathematician and Bellabeat's cofounder; key member of the Bellabeat executive team
+
+## 2 Prepare
+
+### 2.1 Load Packages
+
+Load R packages first in order to process incoming data.
+
+```{r load packages}
+library(tidyverse)
+```
+
+### 2.2 Load Data
+
+Download the file and upload it to RStudio cloud service
+
+[Data Source](https://www.kaggle.com/datasets/arashnic/fitbit/data)
+
+Load data set and store each data set into a variable.
+
+```{r load data}
+daily_activity <- read_csv('../input/fitbit/Fitabase Data 4.12.16-5.12.16/dailyActivity_merged.csv')
+daily_sleep <- read_csv('../input/fitbit/Fitabase Data 4.12.16-5.12.16/sleepDay_merged.csv')
+```
+
+### 2.3 Preview Data
+
+Preview the data to consider which column should be effective in our analysis.
+
+```{r preview data}
+head(daily_activity)
+head(daily_sleep)
+```
+
+### 2.4 Select Data
+
+Select the columns that will be useful in my data analysis.
+
+```{r filter and sort data}
+
+daily_activity <- daily_activity %>% 
+  select(Id, ActivityDate, TotalSteps, VeryActiveMinutes,
+         FairlyActiveMinutes, LightlyActiveMinutes, Calories)
+
+daily_sleep <- daily_sleep %>% 
+  select(Id, SleepDay, TotalMinutesAsleep, TotalTimeInBed)
+
+head(daily_activity)
+head(daily_sleep)
+```
+
+In daily_activity, I need each ActivityMinutes to calculate Activity indicator. In daily_sleep data set, I need TotalMinutesAsleep and TotalTimeInBed to calculate the time to fall asleep. Sorting data is unnecessary in this state because the data set is already sort by Id.
+
+### 2.5 Data integrity
+
+There are some problems in the data set:
+
+-   How to define each activity intensity, such as VeryActive and LightlyActive, in the daily_activity data set? The heart rate or any other indicator?
+
+-   What is the value in Calories column about, calories consumed or expended?
+
+-   The SleepDay record is a snapshot at 12 a.m., but I think it should record on each sleep cycle not at a specific time because everyone have different sleep time, and there might be some people sleep overnight.
+
+However, I could not find those solution online. If I am a data analyst in Bellabeat marketing analytics team, I would ask colleagues or contact the person who issued the data for help. Moreover, I would find other data source from a reliable institute. But in this case, I would continue my analysis from this data set.
+
+## 3 Process
+
+### 3.1 Check Data
+
+Check the data and find any missing values in the data set
+
+```{r check data 1}
+colnames(daily_activity)
+glimpse(daily_activity)
+n_distinct(daily_activity$Id)
+sum(is.na(daily_activity))
+```
+
+```{r check data 2}
+colnames(daily_sleep)
+glimpse(daily_sleep)
+n_distinct(daily_sleep$Id)
+sum(is.na(daily_sleep))
+```
+
+I found that there are more data in daily_activity data so I should give up some data if I want to join two data sets and to found the correlation between the intensity of activity and the time it takes to fall asleep. Furthermore, I have checked that there is no missing value in both data set, so it is unnecessary to drop the row with missing values or fill data!
+
+### 3.2 Separate data
+
+Split the date and time (or delete the time) in daily_sleep data set in order to join time_fall_asleep column to daily_activity data set.
+
+```{r separate data}
+daily_sleep <- separate(daily_sleep, SleepDay, into=c('Date', 'Time'), sep=' ')
+
+# check data
+head(daily_sleep)
+```
+
+I found that AM in all rows had loss because I split the column with space, and there are space between time and AM. However, this will not affect our analysis because I only need Data data.
+
+### 3.3 Rename column
+
+Rename ActivityDate to Date in daily_activity data set in order to join time_fall_asleep column to daily_activity data set. This process can be skipped because there are many functions in R packages can join two different column names.
+
+```{r rename column}
+daily_activity <- daily_activity %>% 
+  rename('Date'= 'ActivityDate')
+
+head(daily_activity)
+```
+
+The date format in both data sets are the same so I do not have to change format in date.
+
+## 4 Analyze
+
+### 4.1 Add data
+
+Calculate the time it takes to fall asleep and add it to daily_sleep data set.
+
+```{r add data}
+
+daily_activity <- daily_activity %>% 
+  mutate(ActivityIndicator= VeryActiveMinutes*5 +
+         FairlyActiveMinutes*3 + LightlyActiveMinutes*1)
+
+daily_sleep <- daily_sleep %>% 
+  mutate(TimeFallAsleep= TotalTimeInBed-TotalMinutesAsleep)
+
+
+# check the data
+head(daily_activity)
+head(daily_sleep)
+```
+
+### 4.2 Select data
+
+After calculation, I could select the columns again to streamline the data, keeping only the necessary parts.
+
+```{r select data}
+daily_activity <- daily_activity %>% 
+  select(Id, Date, TotalSteps, ActivityIndicator, Calories)
+daily_sleep <- daily_sleep %>% 
+  select(Id, Date, TimeFallAsleep)
+
+# check data
+head(daily_activity)
+head(daily_sleep)
+```
+
+### 4.3 Join data
+
+Now, join time_fall_asleep column from daily_sleep to daily_activity by Id and Date.
+
+```{r join data}
+# Inner join
+daily_activity <- merge(x=daily_activity, y=daily_sleep, by=c('Id', 'Date'))
+
+# check data
+head(daily_activity)
+```
+
+### 4.4 Summarize data
+
+Calculate the average value of each columns. Those average data might be helpful in my data analysis.
+
+```{r summarize data}
+sum_data <- daily_activity %>% 
+  summarize(AvgSteps=mean(TotalSteps), AvgAct=mean(ActivityIndicator), 
+            AvgCal=mean(Calories), AvgTime=mean(TimeFallAsleep))
+
+# check data
+head(sum_data)
+```
+
+In this data set, the user's average steps is 8541, average activity indicator is 396, average calories is 2397, and average time to fall asleep is 39.
+
+### 4.5 Sort data
+
+Sort time to fall asleep in ascending order and find some trends in data.
+
+```{r sort data}
+daily_activity <- daily_activity %>% 
+  arrange(TimeFallAsleep)
+
+# check data
+head(daily_activity)
+```
+
+Hardly to see some trends in data, so I would look for the trends after visualization.
+
+### 4.6 visualize data
+
+Look for trends between time to fall asleep and each columns.
+
+```{r visualize data 1}
+ggplot(data=daily_activity)+
+  geom_point(aes(x=TimeFallAsleep, y= TotalSteps))
+```
+
+```{r visualize data 2}
+ggplot(data=daily_activity)+
+  geom_point(aes(x=TimeFallAsleep, y=ActivityIndicator))
+```
+
+```{r visualize data 3}
+ggplot(data=daily_activity)+
+  geom_point(aes(x=TimeFallAsleep, y=Calories))
+```
+
+Unfortunately, there is no trends between time to fall asleep and other indicators. This result means that **Whether calories expended, total steps walking per day, and activity indicator will not affect a person's time to fall asleep**. This indicate that my initial idea might be incorrect. Therefore, I would like to look for correlations between other indicator.
+
+```{r visualize data 4}
+ggplot(data=daily_activity)+
+  geom_point(aes(x=TotalSteps, y=Calories))
+```
+
+```{r visualize data 5}
+ggplot(data=daily_activity)+
+  geom_point(aes(x=TotalSteps, y=Calories))
+```
+
+```{r visualize data 6}
+ggplot(data=daily_activity)+
+  geom_point(aes(x=ActivityIndicator, y=Calories))
+```
+
+```{r visualize data 7}
+ggplot(data=daily_activity)+
+  geom_point(aes(x=ActivityIndicator, y=TotalSteps))
+```
+
+Fortunately, there are obvious trends in each scatter plots, and the correlation between activity indicator and total steps is the strongest. This means **when users have great intensity of activity, the activity might be running** because the total steps increased.
+
+### 4.7 Identify relationships
+
+In the data visualization, I got two results:
+
+-   The time to fall asleep would not affect by calories expended, total steps walking per day, and intensity of activity
+
+-   Most smart device users in non-Bellabeat products prefer to run if they want to do exercises.
+
+## 5 Share
+
+### 5.1 Optimize data visualization
+
+In order to share my insight with scatter plot, I would like to make the chart easier to understand.
+
+```{r optimize visualization}
+ggplot(data=daily_activity)+
+  geom_jitter(aes(x=ActivityIndicator, y=TotalSteps),
+             color='#fe8f77') + 
+  geom_smooth(aes(x=ActivityIndicator, y=TotalSteps),
+              color='#b579e5') + 
+  labs(title='Activity Intensity vs. Daily Steps by Users',
+       subtitle='Sample of non Bellabeat users',
+       caption='Data in Kaggle: FitBit Fitness Tracker Data',
+       x='Activity Intensity',
+       y='Daily Steps')
+```
+
+### 5.2 Save the plot
+
+```{r save plot}
+ggsave('non-Bellabeat user.png')
+```
+
+### 5.3 Market strategy
+
+Base on the result: **Most smart device users in non-Bellabeat products prefer to run if they want to do exercises.** There are some marketing strategies that can improve the company's sales:
+
+-   Emphasize the advantage Bellabeat's smart device on detecting running data in advertisement.
+-   Targeted marketing on runners. For example, Bellabeat can sponsor marathons to increase brand exposure.
+-   Collaborate with brands of runner-related merchandises, such as sportswear, water bottles, towels.
+
+### 5.4 Present findings
+
+In the last phase, I would arrange a meeting and share the result to stakeholders.
+
+#### 5.5 Self reflection
+
+In this case study, I found that it was hard to make an assumption of trend before sorting and visualization of data. I initially wanted to find trends of time it takes to fall asleep with other indicators but failed. Fortunately, I did not select the only data I needed. The remaining data, total steps, calories, and activity intensity, has trends among each other. Therefore, I could find a trend to report and share with stakeholders eventually. If I could do this case study again, I would reserve many data, and classify some data to categories by the range of value. I learned this from other's case studies, and those studies really helped me a lot. I recommend all learners to look at other's case studies as they could provide many insights.
+
+## This is my case study of a smart device company, thanks for watching !!
